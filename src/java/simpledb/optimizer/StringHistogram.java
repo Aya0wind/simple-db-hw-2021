@@ -16,7 +16,7 @@ public class StringHistogram {
      * each String to an integer.
      * 
      * @param buckets
-     *            the number of buckets
+     *                the number of buckets
      */
     public StringHistogram(int buckets) {
         hist = new IntHistogram(buckets, minVal(), maxVal());
@@ -26,7 +26,7 @@ public class StringHistogram {
      * Convert a string to an integer, with the property that if the return
      * value(s1) < return value(s2), then s1 < s2
      */
-    private int stringToInt(String s) {
+    static public int stringToInt(String s) {
         int i;
         int v = 0;
         for (i = 3; i >= 0; i--) {
@@ -52,12 +52,12 @@ public class StringHistogram {
     }
 
     /** @return the maximum value indexed by the histogram */
-    int maxVal() {
+    static public int maxVal() {
         return stringToInt("zzzz");
     }
 
     /** @return the minimum value indexed by the histogram */
-    int minVal() {
+    static public int minVal() {
         return stringToInt("");
     }
 
@@ -72,9 +72,9 @@ public class StringHistogram {
      * predicate over the specified string
      * 
      * @param op
-     *            The operation being applied
+     *           The operation being applied
      * @param s
-     *            The string to apply op to
+     *           The string to apply op to
      */
     public double estimateSelectivity(Predicate.Op op, String s) {
         int val = stringToInt(s);
@@ -87,7 +87,7 @@ public class StringHistogram {
      *         This is not an indispensable method to implement the basic join
      *         optimization. It may be needed if you want to implement a more
      *         efficient optimization
-     * */
+     */
     public double avgSelectivity() {
         return hist.avgSelectivity();
     }
