@@ -22,12 +22,13 @@ public interface DbFile {
      *
      * @throws IllegalArgumentException if the page does not exist in this file.
      */
-    Page readPage(PageId id);
+    Page readPage(PageId id) throws IllegalArgumentException;
 
     /**
      * Push the specified page to disk.
      *
-     * @param p The page to write.  page.getId().pageno() specifies the offset into the file where the page should be written.
+     * @param p The page to write. page.getId().pageno() specifies the offset into
+     *          the file where the page should be written.
      * @throws IOException if the write fails
      *
      */
@@ -39,14 +40,14 @@ public interface DbFile {
      * may block until the lock can be acquired.
      *
      * @param tid The transaction performing the update
-     * @param t The tuple to add.  This tuple should be updated to reflect that
-     *          it is now stored in this file.
+     * @param t   The tuple to add. This tuple should be updated to reflect that
+     *            it is now stored in this file.
      * @return An ArrayList contain the pages that were modified
      * @throws DbException if the tuple cannot be added
      * @throws IOException if the needed file can't be read/written
      */
     List<Page> insertTuple(TransactionId tid, Tuple t)
-        throws DbException, IOException, TransactionAbortedException;
+            throws DbException, IOException, TransactionAbortedException;
 
     /**
      * Removes the specified tuple from the file on behalf of the specified
@@ -55,14 +56,14 @@ public interface DbFile {
      * may block until the lock can be acquired.
      *
      * @param tid The transaction performing the update
-     * @param t The tuple to delete.  This tuple should be updated to reflect that
-     *          it is no longer stored on any page.
+     * @param t   The tuple to delete. This tuple should be updated to reflect that
+     *            it is no longer stored on any page.
      * @return An ArrayList contain the pages that were modified
      * @throws DbException if the tuple cannot be deleted or is not a member
-     *   of the file
+     *                     of the file
      */
     List<Page> deleteTuple(TransactionId tid, Tuple t)
-        throws DbException, IOException, TransactionAbortedException;
+            throws DbException, IOException, TransactionAbortedException;
 
     /**
      * Returns an iterator over all the tuples stored in this DbFile. The
@@ -78,7 +79,7 @@ public interface DbFile {
      * can be used to look up the table via {@link Catalog#getDatabaseFile} and
      * {@link Catalog#getTupleDesc}.
      * <p>
-     * Implementation note:  you will need to generate this tableid somewhere,
+     * Implementation note: you will need to generate this tableid somewhere,
      * ensure that each HeapFile has a "unique id," and that you always
      * return the same value for a particular HeapFile. A simple implementation
      * is to use the hash code of the absolute path of the file underlying
@@ -87,9 +88,10 @@ public interface DbFile {
      * @return an ID uniquely identifying this HeapFile.
      */
     int getId();
-    
+
     /**
      * Returns the TupleDesc of the table stored in this DbFile.
+     * 
      * @return TupleDesc of this DbFile.
      */
     TupleDesc getTupleDesc();

@@ -6,7 +6,8 @@ package simpledb.common;
  * more or less command line output to be turned on.
  * <p>
  * Change the value of the DEBUG_LEVEL constant using a system property:
- * simpledb.common.Debug. For example, on the command line, use -Dsimpledb.Debug=x,
+ * simpledb.common.Debug. For example, on the command line, use
+ * -Dsimpledb.Debug=x,
  * or simply -Dsimpledb.Debug to enable it at level 0.
  * The log(level, message, ...) method will print to standard output if the
  * level number is less than or equal to the currently set DEBUG_LEVEL.
@@ -15,19 +16,19 @@ package simpledb.common;
 public class Debug {
   private static final int DEBUG_LEVEL;
   static {
-      String debug = System.getProperty("simpledb.common.Debug");
-      if (debug == null) {
-          // No system property = disabled
-          DEBUG_LEVEL = -1;
-      } else if (debug.length() == 0) {
-          // Empty property = level 0
-          DEBUG_LEVEL = 0;
-      } else {
-          DEBUG_LEVEL = Integer.parseInt(debug);
-      }
+    String debug = "3";// System.getProperty("simpledb.common.Debug");
+    if (debug == null) {
+      // No system property = disabled
+      DEBUG_LEVEL = -1;
+    } else if (debug.length() == 0) {
+      // Empty property = level 0
+      DEBUG_LEVEL = 0;
+    } else {
+      DEBUG_LEVEL = Integer.parseInt(debug);
+    }
   }
 
-  private static final int DEFAULT_LEVEL = 0;
+  private static final int DEFAULT_LEVEL = 2;
 
   /** Log message if the log level >= level. Uses printf. */
   public static void log(int level, String message, Object... args) {

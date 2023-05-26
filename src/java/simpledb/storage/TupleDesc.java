@@ -43,9 +43,7 @@ public class TupleDesc implements Serializable {
         public boolean equals(Object o) {
             if (o instanceof TDItem) {
                 TDItem other = (TDItem) o;
-                if (this.fieldName == null && other.fieldName == null)
-                    return this.fieldType.equals(other.fieldType);
-                if (other.fieldType.equals(this.fieldType) && other.fieldName.equals(this.fieldName)) {
+                if (other.fieldType.equals(this.fieldType)) {
                     return true;
                 }
             }

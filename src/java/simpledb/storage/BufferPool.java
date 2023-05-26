@@ -8,8 +8,8 @@ import simpledb.transaction.TransactionAbortedException;
 import simpledb.transaction.TransactionId;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -23,11 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Threadsafe, all fields are final
  */
 public class BufferPool {
+
     /** Bytes per page, including header. */
     private static final int DEFAULT_PAGE_SIZE = 4096;
 
     private static int pageSize = DEFAULT_PAGE_SIZE;
-    private HashMap<PageId, Page> pages;
+    private LRUCache<PageId, Page> pages;
     /**
      * Default number of pages passed to the constructor. This is used by
      * other classes. BufferPool should use the numPages argument to the
@@ -44,15 +45,19 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         if (numPages > 0) {
-            this.pages = new HashMap<>(numPages);
+            this.pages = new LRUCache<>(numPages);
         } else {
-            this.pages = new HashMap<>(DEFAULT_PAGES);
+            this.pages = new LRUCache<>(DEFAULT_PAGES);
         }
         // some code goes here
     }
 
     public static int getPageSize() {
         return pageSize;
+    }
+
+    public void addPage(PageId id, Page page) throws DbException {
+        this.pages.put(id, page);
     }
 
     // THIS FUNCTION SHOULD ONLY BE USED FOR TESTING!!
@@ -95,9 +100,8 @@ public class BufferPool {
                 return null;
             }
             this.pages.put(pid, newPage);
-            if (this.pages.size() > pageSize) {
-                // evictPage();
-                throw new DbException("page cache overflow");
+            if (this.pages.getSize() == this.pages.getCapacity()) {
+                evictPage();
             }
             return newPage;
         }
@@ -165,6 +169,10 @@ public class BufferPool {
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+        List<Page> dirtyPages = Database.getCatalog().getDatabaseFile(tableId).insertTuple(tid, t);
+        for (Page dirtyPage : dirtyPages) {
+            dirtyPage.markDirty(true, tid);
+        }
     }
 
     /**
@@ -184,6 +192,13 @@ public class BufferPool {
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+        int tableId = t.getRecordId().getPageId().getTableId();
+        List<Page> dirtyPages = Database.getCatalog()
+                .getDatabaseFile(tableId)
+                .deleteTuple(tid, t);
+        for (Page dirtyPage : dirtyPages) {
+            dirtyPage.markDirty(true, tid);
+        }
     }
 
     /**
@@ -194,6 +209,13 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for lab1
+        Iterator<Page> pages = this.pages.values();
+        while (pages.hasNext()) {
+            Page page = pages.next();
+            if (page.isDirty() != null) {
+                flushPage(page.getId());
+            }
+        }
 
     }
 
@@ -209,6 +231,11 @@ public class BufferPool {
     public synchronized void discardPage(PageId pid) {
         // some code goes here
         // not necessary for lab1
+        try {
+            this.pages.remove(pid);
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -219,6 +246,11 @@ public class BufferPool {
     private synchronized void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for lab1
+        Page page = this.pages.get(pid);
+        if (page != null) {
+            DbFile databaseFile = Database.getCatalog().getDatabaseFile(pid.getTableId());
+            databaseFile.writePage(page);
+        }
     }
 
     /**
@@ -227,6 +259,14 @@ public class BufferPool {
     public synchronized void flushPages(TransactionId tid) throws IOException {
         // some code goes here
         // not necessary for lab1|lab2
+        Iterator<Page> pages = this.pages.values();
+        DbFile databaseFile = null;
+        while (pages.hasNext()) {
+            Page page = pages.next();
+            if (databaseFile == null)
+                databaseFile = Database.getCatalog().getDatabaseFile(page.getId().getTableId());
+            databaseFile.writePage(page);
+        }
     }
 
     /**
@@ -236,6 +276,17 @@ public class BufferPool {
     private synchronized void evictPage() throws DbException {
         // some code goes here
         // not necessary for lab1
+        LRUCache<PageId, Page>.DLinkedNode node = pages.evictNode();
+        PageId pageId = node.key;
+        Page page = node.value;
+        DbFile databaseFile = Database.getCatalog().getDatabaseFile(pageId.getTableId());
+        try {
+            // 将淘汰的page页落盘
+            databaseFile.writePage(page);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }
